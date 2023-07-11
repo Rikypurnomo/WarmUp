@@ -1,0 +1,29 @@
+package repository
+
+import (
+	"context"
+
+	"github.com/Rikypurnomo/warmup/internal/api/models"
+	"gorm.io/gorm"
+)
+
+func NewUsersRepository(db *gorm.DB) *userRepository {
+	return &userRepository{
+		DB: db,
+	}
+}
+
+type (
+	UsersRepository interface {
+		GetAll(context context.Context) (res []models.Users, err error)
+	}
+
+	userRepository struct {
+		DB *gorm.DB
+	}
+)
+
+func (r *userRepository) GetAll(ctx context.Context) (res []models.Users, err error) {
+	err = r.DB.WithContext(ctx).Limit(10).Find(&res).Error
+	return
+}

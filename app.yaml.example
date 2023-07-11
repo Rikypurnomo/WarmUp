@@ -1,0 +1,74 @@
+Version: 1.0.0
+Config:
+  NameServices: "warmup"
+  Env: "DEV"
+  LogLevel: "DEBUG"
+  Host: "localhost"
+  Port: "8081"
+  LocationTime: "Asia/Jakarta"
+  ReadTimeoutSecond: 360
+  WriteTimeoutSecond: 360
+  IdleTimeoutSecond: 360
+  LogType: "json" # json, text
+
+OpenTelemetry:
+  Enabled: false
+  Host: "localhost"
+  Port: "4317"
+
+AdapterAz:
+  Enable: false
+  Host: "0.0.0.0"
+  Port: "5000"
+
+HTTPReq:
+  Timeout: 60
+  Retry: 10
+  Debug: true
+
+Postgresql:
+  Enabled: false
+  Host: ""
+  Port: ""
+  Username: ""
+  Password: ""
+  Database: ""
+  Timeout: "60"
+  SslMode: "disable"
+  LogLevel: "error"
+
+Redis:
+  Enabled: false
+  Host: ""
+  Port: ""
+  Password: ""
+
+Cors:
+  MaxAge: 86400
+  AllowCredentials: true
+  AllowAllOrigins: true
+  Methods:
+    - GET
+    - POST
+    - DELETE
+    - PUT
+    - PATH
+  Headers:
+    - Origin
+    - authorization
+    - Content-Length
+    - Content-Type
+    - User-Agent
+    - Referrer
+    - Host
+    - Token
+    - X-Timestamp
+    - X-Source
+    - X-Signature
+  ExposeHeader:
+    - Content-Length
+    - Access-Control-Allow-Origin
+    - Access-Control-Allow-Headers
+    - Content-Type
+  Origins:
+    - ""
