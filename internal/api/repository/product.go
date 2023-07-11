@@ -33,7 +33,7 @@ func (r *productRepository) ListProduct(ctx context.Context, page int, limit int
 		Model(&models.Product{}).
 		Select("products.name AS name,products.id ,products.price AS price ,products.description AS description , categories.name as category_name").
 		Joins("JOIN categories ON products.category_id = categories.id").
-		Where("products.deleted_at IS NULL AND products.name LIKE ?", "%"+search+"%").Offset(offset).Limit(limit).
+		Where("products.deleted_at IS NUll AND products.name iliKE ?", "%"+search+"%").Offset(offset).Limit(limit).
 		// Where("name LIKE ?",cari).
 		Find(&product).Count(&count).Error
 

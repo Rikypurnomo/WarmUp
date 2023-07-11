@@ -22,3 +22,16 @@ func (h *handlesInit) AddToCart(ctx *gin.Context) {
 
 	successResponse(ctx, http.StatusOK, " success", productID)
 }
+
+
+func (h *handlesInit) GetCartByUserByID(ctx *gin.Context) {
+	userID := ctx.MustGet("userLogin").(int)
+
+	carts, err := h.service.GetCartByUserID(ctx, userID)
+	if err != nil {
+		errorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	successResponse(ctx, http.StatusOK, "Success", carts)
+}

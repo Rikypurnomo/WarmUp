@@ -21,6 +21,7 @@ func RouterApi(router *gin.Engine) *gin.Engine {
 	router.GET("categories", h.FindCategory)
 	router.POST("/cart/:id", middleware.Auth(), h.AddToCart)
 	router.POST("/transaction", middleware.Auth(), h.CreateTransaction)
+	router.GET("carts", middleware.Auth(), h.GetCartByUserByID)
 	router.GET("/history", middleware.Auth(), h.GetTransactionHistory)
 
 	return router

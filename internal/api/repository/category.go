@@ -40,7 +40,7 @@ func (r *categoryRepository) ListCategory(ctx context.Context, page int, limit i
 	err = r.DB.WithContext(ctx).
 		Model(&models.Category{}).
 		Select("categories.name,categories.id").
-		Where("deleted_at IS NULL AND name LIKE ?", "%"+search+"%").
+		Where("deleted_at IS NULL AND name iLIKE ?", "%"+search+"%").
 		Offset(offset).Limit(limit).
 		Find(&category).
 		Count(&count).

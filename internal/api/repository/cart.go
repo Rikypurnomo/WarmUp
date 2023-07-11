@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/Rikypurnomo/warmup/internal/api/dto"
 	"github.com/Rikypurnomo/warmup/internal/api/models"
 	"gorm.io/gorm"
 )
@@ -17,6 +19,7 @@ func NewCartRepository(db *gorm.DB) *cartRepository {
 type (
 	CartsRepository interface {
 		AddToCart(ctx context.Context, productID, userID int) (err error)
+		GetCartByUserID(ctx context.Context, userID int) ([]dto.CartResponse, error)
 	}
 
 	cartRepository struct {
@@ -26,7 +29,6 @@ type (
 
 func (r *cartRepository) AddToCart(ctx context.Context, productID, userID int) (err error) {
 	var cart models.Cart
-
 	err = r.DB.WithContext(ctx).
 		Model(&models.Cart{}).
 		Where("product_id = ? AND user_id = ?", productID, userID).
@@ -52,32 +54,26 @@ func (r *cartRepository) AddToCart(ctx context.Context, productID, userID int) (
 	return nil
 }
 
-// func (r *cartRepository) AddToCart(ctx context.Context, productID, id int) (err error) {
+func (r *cartRepository) GetCartByUserID(ctx context.Context, userID int) ([]dto.CartResponse, error) {
 
-// 	var quantity int
-// 	err = r.DB.WithContext(ctx).
-// 		Model(&models.Cart{}).
-// 		Select("quantity").
-// 		Find(&quantity).
-// 		Error
+	var carts []dto.CartResponse
+	err := r.DB.WithContext(ctx).
+		Model(&models.Cart{}).
+		Select("products.name,carts.quantity, users.full_name as full_name, categories.name as category_name").
+		Joins("JOIN products ON carts.product_id = products.id").
+		Joins("JOIN users ON carts.user_id = users.id").
+		Joins("JOIN categories ON products.category_id = categories.id").
+		Where("carts.user_id = ? AND carts.status = ?", userID, false).
+		Find(&carts).
+		Error
+	if err != nil {
+		return nil, err
+	}
 
-// 		fmt.Println(quantity,"<QUANTITY>")
+	if len(carts) == 0 {
+		return nil, errors.New("No carts found")
+	}
+	fmt.Println(carts, "<(*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&)")
 
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	cart := &models.Cart{
-// 		UserID:    id,
-// 		ProductID: productID,
-// 		Status:    false,
-// 		Quantity: quantity,
-// 	}
-
-// 	err = r.DB.WithContext(ctx).Create(&cart).Error
-
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+	return carts, nil
+}

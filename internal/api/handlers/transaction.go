@@ -24,11 +24,23 @@ func (h *handlesInit) CreateTransaction(ctx *gin.Context) {
 func (h *handlesInit) GetTransactionHistory(ctx *gin.Context) {
 	userID := ctx.MustGet("userLogin").(int)
 
-	transactions, err := h.service.GetTransactionHistory(ctx, userID)
+	history, err := h.service.GetTransactionHistory(ctx, userID)
 	if err != nil {
 		errorResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	successResponse(ctx, http.StatusOK, "Transaction history retrieved successfully", transactions)
+	successResponse(ctx, http.StatusOK, "Success", history)
 }
+
+// func (h *handlesInit) GetTransactionHistory(ctx *gin.Context) {
+// 	userID := ctx.MustGet("userLogin").(int)
+
+// 	transactions, err := h.service.GetTransactionHistory(ctx, userID)
+// 	if err != nil {
+// 		errorResponse(ctx, http.StatusInternalServerError, err.Error())
+// 		return
+// 	}
+
+// 	successResponse(ctx, http.StatusOK, "Transaction history retrieved successfully", transactions)
+// }

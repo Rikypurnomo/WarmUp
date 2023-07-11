@@ -3,7 +3,10 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 
+	"github.com/Rikypurnomo/warmup/internal/api/dto"
 	"github.com/Rikypurnomo/warmup/internal/api/models"
 	"gorm.io/gorm"
 )
@@ -17,7 +20,8 @@ func NewTransactionRepository(db *gorm.DB) *transactionRepository {
 type (
 	TransactionsRepository interface {
 		CreateTransaction(ctx context.Context, userID int) (err error)
-		GetTransactionHistory(ctx context.Context, userID int) ([]models.Transaction, error)
+		// GetTransactionHistory(ctx context.Context) ([]models.Transaction, error)
+		GetTransactionHistory(ctx context.Context, userID int) ([]dto.History, error)
 	}
 
 	transactionRepository struct {
@@ -28,30 +32,6 @@ type (
 func (r *transactionRepository) CreateTransaction(ctx context.Context, userID int) (err error) {
 	tx := r.DB.Begin()
 
-	// var productID int
-	// err = tx.WithContext(ctx).
-	// 	Model(&models.Cart{}).
-	// 	Select("products.id").
-	// 	Joins("JOIN products ON carts.product_id = products.id").
-	// 	Where("carts.user_id = ?", userID).
-	// 	Scan(&productID).
-	// 	Error
-	// fmt.Println(productID, "<(&&&&&&&&&&&&&&&&&&&&&&&&**(((((PRODUCTID")
-
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	return err
-	// }
-
-	// var totalPrice sql.NullFloat64
-	// err = tx.WithContext(ctx).
-	// 	Model(&models.Product{}).
-	// 	Select("COALESCE(SUM(products.price * carts.quantity), 0)").
-	// 	Joins("JOIN carts ON carts.product_id = products.id").
-	// 	Where("carts.user_id = ? OR products.deleted_at IS NULL", userID).
-	// 	Scan(&totalPrice).
-	// 	Error
-
 	var totalPrice sql.NullFloat64
 	err = tx.WithContext(ctx).
 		Model(&models.Cart{}).
@@ -61,22 +41,12 @@ func (r *transactionRepository) CreateTransaction(ctx context.Context, userID in
 		Scan(&totalPrice).
 		Error
 
-	// var totalPrice sql.NullInt64
-	// err = tx.WithContext(ctx).
-	// 	Model(&models.Product{}).
-	// 	Select("SUM(products.price)").
-	// 	Joins("JOIN carts ON carts.product_id = products.id").
-	// 	Where("carts.user_id = ? OR products.deleted_at IS NULL", userID).
-	// 	Scan(&totalPrice).
-	// 	Error
-
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 	transaction := &models.Transaction{
-		UserID: userID,
-		// ProductID:  productID,
+		UserID:     userID,
 		TotalPrice: int(totalPrice.Float64),
 	}
 
@@ -86,6 +56,36 @@ func (r *transactionRepository) CreateTransaction(ctx context.Context, userID in
 		return err
 	}
 
+	var cart int64
+	err = tx.WithContext(ctx).
+		Model(&models.Cart{}).
+		Where("user_id = ? AND (status = false)", userID).
+		Count(&cart).
+		Error
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(cart, "<<hasil count")
+	if cart == 0 {
+		return errors.New("User already has a checked-out cart or existing transaction")
+	}
+
+	err = tx.WithContext(ctx).
+		Model(&models.Cart{}).
+		Where("user_id = ? AND status = 'false'", userID).
+		Update("status", "true").
+		Error
+	if err != nil {
+		return err
+	}
+
+	history := &models.History{
+		UserID:        userID,
+		TransactionID: int(transaction.ID),
+	}
+
+	err = tx.Create(&history).Error
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -99,35 +99,23 @@ func (r *transactionRepository) CreateTransaction(ctx context.Context, userID in
 	return nil
 }
 
-// history := &models.History{
-// 	TransactionID: int(transaction.ID),
-// 	TotalPrice:    transaction.TotalPrice,
-// 	UserID:        transaction.UserID,
-// 	ProductID:     productID,
-// }
-// fmt.Println(history, "<<<ini yg historyyyyyyyyyy")
+func (r *transactionRepository) GetTransactionHistory(ctx context.Context, userID int) ([]dto.History, error) {
 
-func (r *transactionRepository) GetTransactionHistory(ctx context.Context, userID int) ([]models.Transaction, error) {
-	var transactions []models.Transaction
+	var history []dto.History
 	err := r.DB.WithContext(ctx).
-		Model(&models.Transaction{}).
-		Where("user_id = ?", userID).
-		Find(&transactions).
-		Error
+		Model(&models.Product{}).
+		Select("products.name AS name, users.full_name AS full_name, transactions.id AS transaction_id, categories.name AS category_name").
+		Joins("JOIN carts ON carts.product_id = products.id").
+		Joins("JOIN categories ON categories.id = products.category_id").
+		Joins("JOIN users ON carts.user_id = users.id").
+		Joins("JOIN transactions ON transactions.user_id = users.id").
+		Where("transactions.user_id = ?", userID).
+		Find(&history).Error
 
 	if err != nil {
 		return nil, err
 	}
-	return transactions, nil
+	fmt.Println(history, "<(*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&)")
+
+	return history, nil
 }
-
-// var Transactions []models.Transaction
-// err = r.DB.WithContext(ctx).
-// 	Model(&models.Transaction{}).
-// 	Select("user_id, product_id, total_price").
-// 	Where("user_id = ?", userID).
-// 	Find(&Transactions).
-// 	Error
-
-// fmt.Println(userID, "ini userrrrrrrrrr")
-// fmt.Println("<history>", Transactions, "<>history<<")

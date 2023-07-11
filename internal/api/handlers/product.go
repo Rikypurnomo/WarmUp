@@ -20,13 +20,12 @@ func (h *handlesInit) FindProduct(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	search := (ctx.Query("search"))
 
-	product, pagination, err := h.service.ListProduct(ctx, page, limit,search)
+	product, pagination, err := h.service.ListProduct(ctx, page, limit, search)
 
 	if err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
-
 	successResponsePagination(ctx, http.StatusOK, "succes", product, pagination)
 }
 
@@ -57,6 +56,6 @@ func (h *handlesInit) CreateProduct(ctx *gin.Context) {
 		errorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
-	
+
 	successResponse(ctx, http.StatusOK, " success", nil)
 }

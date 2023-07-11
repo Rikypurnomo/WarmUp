@@ -12,7 +12,7 @@ type (
 		RepositoryCategori    repository.CategoriesRepository
 		RepositoryCart        repository.CartsRepository
 		RepositoryTransaction repository.TransactionsRepository
-		// RepositoryHistory     repository.HistoryRepository
+		// RepositoryHistory     repository.HistoriesRepository
 	}
 )
 
